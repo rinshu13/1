@@ -1,0 +1,243 @@
+<Window x:Class="Magazin.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Magazin" Height="720" Width="1180"
+        MinHeight="620" MinWidth="980"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Arial"
+        Background="White">
+    <Window.Resources>
+        <SolidColorBrush x:Key="MainBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="SecondBrush" Color="#F5DEB3"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#DEB887"/>
+        <SolidColorBrush x:Key="DiscountBrush" Color="#FFDEAD"/>
+        <SolidColorBrush x:Key="NoStockBrush" Color="#87CEFA"/>
+
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Padding" Value="14 8"/>
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="#7A5B38"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Padding" Value="7"/>
+            <Setter Property="FontSize" Value="15"/>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Padding" Value="7"/>
+            <Setter Property="FontSize" Value="15"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource MainBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="32"/>
+        </Grid.RowDefinitions>
+
+        <Border x:Name="LoginPanel" Grid.RowSpan="4" Background="White" Panel.ZIndex="20">
+            <Border Width="430" Padding="24" BorderBrush="{StaticResource SecondBrush}" BorderThickness="4"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Image Source="Images/logo.png" Width="240" Height="90" Stretch="Uniform" Margin="0 0 0 8"/>
+                    <TextBlock Text="Вход в систему" FontSize="24" FontWeight="Bold" TextAlignment="Center" Margin="0 0 0 18"/>
+                    <TextBlock Text="Логин"/>
+                    <TextBox x:Name="TbLogin"/>
+                    <TextBlock Text="Пароль"/>
+                    <PasswordBox x:Name="PbPassword" Margin="4" Padding="7" FontSize="15"/>
+                    <Button Content="Войти" Click="BtnLogin_Click"/>
+                    <Button Content="Войти как гость" Background="{StaticResource SecondBrush}" Click="BtnGuest_Click"/>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <Border Grid.Row="0" Background="{StaticResource SecondBrush}" Padding="12">
+            <DockPanel>
+                <Image Source="Images/logo.png" Width="88" Height="54" Stretch="Uniform" DockPanel.Dock="Left" Margin="0 0 12 0"/>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock x:Name="TbUserInfo" VerticalAlignment="Center" FontWeight="Bold" Margin="0 0 8 0"/>
+                    <Button Content="Выход" Click="BtnLogout_Click"/>
+                </StackPanel>
+                <TextBlock x:Name="TbPageTitle" Text="Товары" FontSize="26" FontWeight="Bold" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <DockPanel Grid.Row="1" Margin="12 8">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                <Button Content="Товары" Click="BtnProductsView_Click"/>
+                <Button x:Name="BtnOrdersView" Content="Заказы" Click="BtnOrdersView_Click"/>
+                <Button x:Name="BtnAddProduct" Content="Добавить товар" Click="BtnAddProduct_Click"/>
+                <Button x:Name="BtnAddOrder" Content="Добавить заказ" Click="BtnAddOrder_Click"/>
+            </StackPanel>
+
+            <StackPanel x:Name="ProductToolsPanel" Orientation="Horizontal" DockPanel.Dock="Right">
+                <TextBox x:Name="TbSearch" Width="230" ToolTip="Поиск" TextChanged="FilterChanged"/>
+                <ComboBox x:Name="CbSupplierFilter" Width="210" DisplayMemberPath="Title" SelectedValuePath="ID" SelectionChanged="FilterChanged"/>
+                <ComboBox x:Name="CbSort" Width="190" SelectionChanged="FilterChanged">
+                    <ComboBoxItem Content="Без сортировки" Tag=""/>
+                    <ComboBoxItem Content="Цена по возрастанию" Tag="Cost ASC"/>
+                    <ComboBoxItem Content="Цена по убыванию" Tag="Cost DESC"/>
+                    <ComboBoxItem Content="Остаток по возрастанию" Tag="Quantity ASC"/>
+                    <ComboBoxItem Content="Остаток по убыванию" Tag="Quantity DESC"/>
+                </ComboBox>
+            </StackPanel>
+        </DockPanel>
+
+        <Grid Grid.Row="2" Margin="12 0">
+            <ListBox x:Name="LbProducts" MouseDoubleClick="LbProducts_MouseDoubleClick">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Margin" Value="0 0 0 8"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Background" Value="White"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HighDiscount}" Value="True">
+                                <Setter Property="Background" Value="{StaticResource DiscountBrush}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding NoStock}" Value="True">
+                                <Setter Property="Background" Value="{StaticResource NoStockBrush}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="Black" BorderThickness="2"
+                                Background="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=Background}">
+                            <Grid MinHeight="155">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="230"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="150"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" BorderBrush="Black" BorderThickness="2" Background="White" Margin="8">
+                                    <Image Source="{Binding DisplayPhotoPath}" Stretch="Uniform" Width="210" Height="135"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" Margin="12 8">
+                                    <TextBlock FontWeight="Bold" FontSize="17" TextWrapping="Wrap">
+                                        <Run Text="{Binding CategoryTitle}"/><Run Text=" | "/><Run Text="{Binding Title}"/>
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding Description, StringFormat=Описание товара: {0}}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding ManufacturerTitle, StringFormat=Производитель: {0}}"/>
+                                    <TextBlock Text="{Binding SupplierTitle, StringFormat=Поставщик: {0}}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Цена: "/>
+                                        <TextBlock x:Name="OldCost" Text="{Binding Cost}"/>
+                                        <TextBlock x:Name="NewCost" Text="{Binding FinalCost, StringFormat=  {0}}" Visibility="Collapsed"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding UnitTitle, StringFormat=Единица измерения: {0}}"/>
+                                    <TextBlock Text="{Binding Quantity, StringFormat=Количество на складе: {0}}"/>
+                                </StackPanel>
+                                <Border Grid.Column="2" BorderBrush="Black" BorderThickness="2" Background="White" Margin="0 8 8 8">
+                                    <TextBlock Text="{Binding DiscountText}" TextAlignment="Center" TextWrapping="Wrap"
+                                               VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding HasDiscount}" Value="True">
+                                <Setter TargetName="OldCost" Property="TextDecorations" Value="Strikethrough"/>
+                                <Setter TargetName="OldCost" Property="Foreground" Value="Red"/>
+                                <Setter TargetName="NewCost" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <DataGrid x:Name="DgOrders" Visibility="Collapsed" AutoGenerateColumns="False" IsReadOnly="True"
+                      MouseDoubleClick="DgOrders_MouseDoubleClick">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Номер" Binding="{Binding ID}" Width="70"/>
+                    <DataGridTextColumn Header="Артикулы" Binding="{Binding Articles}" Width="2*"/>
+                    <DataGridTextColumn Header="Дата заказа" Binding="{Binding OrderDate}" Width="120"/>
+                    <DataGridTextColumn Header="Дата выдачи" Binding="{Binding DeliveryDate}" Width="120"/>
+                    <DataGridTextColumn Header="Пункт выдачи" Binding="{Binding PickupPointAddress}" Width="2*"/>
+                    <DataGridTextColumn Header="Клиент" Binding="{Binding ClientFullName}" Width="180"/>
+                    <DataGridTextColumn Header="Код" Binding="{Binding ReceiveCode}" Width="80"/>
+                    <DataGridTextColumn Header="Статус" Binding="{Binding StatusTitle}" Width="120"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <TextBlock x:Name="TbCount" Grid.Row="3" Margin="16 0" VerticalAlignment="Center"/>
+
+        <Border x:Name="ProductEditPanel" Grid.RowSpan="4" Background="#AAFFFFFF" Visibility="Collapsed" Panel.ZIndex="15">
+            <Border Width="620" Padding="18" Background="White" BorderBrush="{StaticResource SecondBrush}" BorderThickness="4"
+                    VerticalAlignment="Center" HorizontalAlignment="Center">
+                <ScrollViewer>
+                    <StackPanel>
+                        <TextBlock x:Name="TbProductEditTitle" Text="Товар" FontSize="22" FontWeight="Bold" TextAlignment="Center"/>
+                        <TextBlock Text="ID"/>
+                        <TextBox x:Name="TbProductId" IsReadOnly="True"/>
+                        <TextBlock Text="Фото товара"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Image x:Name="ImgProductPreview" Width="120" Height="80" Stretch="Uniform" Source="Images/picture.png"/>
+                            <Button Content="Выбрать фото" Click="BtnChooseImage_Click"/>
+                        </StackPanel>
+                        <TextBlock Text="Артикул"/>
+                        <TextBox x:Name="TbArticle"/>
+                        <TextBlock Text="Наименование товара"/>
+                        <TextBox x:Name="TbTitle"/>
+                        <TextBlock Text="Категория товара"/>
+                        <ComboBox x:Name="CbCategory" DisplayMemberPath="Title" SelectedValuePath="ID"/>
+                        <TextBlock Text="Описание товара"/>
+                        <TextBox x:Name="TbDescription" Height="70" TextWrapping="Wrap" AcceptsReturn="True"/>
+                        <TextBlock Text="Производитель"/>
+                        <ComboBox x:Name="CbManufacturer" DisplayMemberPath="Title" SelectedValuePath="ID"/>
+                        <TextBlock Text="Поставщик"/>
+                        <ComboBox x:Name="CbSupplier" DisplayMemberPath="Title" SelectedValuePath="ID"/>
+                        <TextBlock Text="Цена"/>
+                        <TextBox x:Name="TbCost"/>
+                        <TextBlock Text="Единица измерения"/>
+                        <ComboBox x:Name="CbUnit" DisplayMemberPath="Title" SelectedValuePath="ID"/>
+                        <TextBlock Text="Количество на складе"/>
+                        <TextBox x:Name="TbQuantity"/>
+                        <TextBlock Text="Действующая скидка, %"/>
+                        <TextBox x:Name="TbDiscount"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="Сохранить" Click="BtnSaveProduct_Click"/>
+                            <Button Content="Удалить" Click="BtnDeleteProduct_Click"/>
+                            <Button Content="Назад" Background="{StaticResource SecondBrush}" Click="BtnCloseProductEdit_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Border>
+
+        <Border x:Name="OrderEditPanel" Grid.RowSpan="4" Background="#AAFFFFFF" Visibility="Collapsed" Panel.ZIndex="16">
+            <Border Width="560" Padding="18" Background="White" BorderBrush="{StaticResource SecondBrush}" BorderThickness="4"
+                    VerticalAlignment="Center" HorizontalAlignment="Center">
+                <StackPanel>
+                    <TextBlock x:Name="TbOrderEditTitle" Text="Заказ" FontSize="22" FontWeight="Bold" TextAlignment="Center"/>
+                    <TextBlock Text="Номер заказа"/>
+                    <TextBox x:Name="TbOrderId" IsReadOnly="True"/>
+                    <TextBlock Text="Артикулы и количество"/>
+                    <TextBox x:Name="TbOrderArticles" Height="70" TextWrapping="Wrap" AcceptsReturn="True"/>
+                    <TextBlock Text="Статус заказа"/>
+                    <ComboBox x:Name="CbOrderStatus" DisplayMemberPath="Title" SelectedValuePath="ID"/>
+                    <TextBlock Text="Адрес пункта выдачи"/>
+                    <ComboBox x:Name="CbPickupPoint" DisplayMemberPath="Address" SelectedValuePath="ID"/>
+                    <TextBlock Text="Дата заказа"/>
+                    <DatePicker x:Name="DpOrderDate" Margin="4"/>
+                    <TextBlock Text="Дата выдачи"/>
+                    <DatePicker x:Name="DpDeliveryDate" Margin="4"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Сохранить" Click="BtnSaveOrder_Click"/>
+                        <Button Content="Удалить" Click="BtnDeleteOrder_Click"/>
+                        <Button Content="Назад" Background="{StaticResource SecondBrush}" Click="BtnCloseOrderEdit_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</Window>
